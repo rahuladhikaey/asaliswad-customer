@@ -90,7 +90,9 @@ export default function SignupPage() {
 
       // Switch to OTP verification step
       setStep("otp");
-      setStatusMessage("✅ Verification OTP sent to your email! Please enter it below.");
+      setStatusMessage(data.devOtp 
+        ? `✅ Verification OTP generated! (Code: ${data.devOtp})`
+        : "✅ Verification OTP sent to your email! Please enter it below.");
     } catch (err) {
       setStatusMessage("Failed to connect to the verification service. Please try again.");
     } finally {
