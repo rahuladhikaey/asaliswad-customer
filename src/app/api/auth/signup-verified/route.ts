@@ -14,12 +14,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user with auto-confirmation
-    const { data, error } = await supabaseServer.auth.admin.createUser({
+    // 1. Try admin creation with auto-confirmation first
+    let { data, error } = await supabaseServer.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password,
       email_confirm: true, // Auto-confirm the email
     });
+
+    // 2. Fallback to standard signUp if service role key is missing/unconfigured or unauthorized
+    if (error && (error.message.toLowerCase().includes("bearer token") || error.message.toLowerCase().includes("not allowed") || error.status === 401 || error.status === 403)) {
+      console.warn("[Auth API] Admin creation requires Service Role key, falling back to standard signUp:", error.message);
+      const signUpRes = await supabaseServer.auth.signUp({
+        email: email.toLowerCase().trim(),
+        password,
+      });
+      data = { user: signUpRes.data.user };
+      error = signUpRes.error;
+    }
 
     if (error) {
       // Handle different error types
