@@ -33,7 +33,6 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"form" | "otp">("form");
   const [otpCode, setOtpCode] = useState("");
-  const [tempOtp, setTempOtp] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -89,10 +88,9 @@ export default function SignupPage() {
         return;
       }
 
-      // Save the generated OTP and switch step
-      setTempOtp(data.otp);
+      // Switch to OTP verification step
       setStep("otp");
-      setStatusMessage("✅ Temporary OTP generated! Please enter it to verify.");
+      setStatusMessage("✅ Verification OTP sent to your email! Please enter it below.");
     } catch (err) {
       setStatusMessage("Failed to connect to the verification service. Please try again.");
     } finally {
@@ -174,8 +172,7 @@ export default function SignupPage() {
         return;
       }
 
-      setTempOtp(data.otp);
-      setStatusMessage("✅ A new temporary OTP has been generated!");
+      setStatusMessage("✅ A new verification OTP has been sent to your email!");
     } catch (err) {
       setStatusMessage("Failed to resend OTP. Please try again.");
     } finally {
