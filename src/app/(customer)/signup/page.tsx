@@ -137,13 +137,13 @@ export default function SignupPage() {
       }
 
       setStatusMessage("✅ Account created and verified successfully!");
-      
+
       // Clear form
       setEmail("");
       setPassword("");
       setConfirmPassword("");
       setOtpCode("");
-      
+
       setTimeout(() => {
         router.push("/login");
       }, 2000);

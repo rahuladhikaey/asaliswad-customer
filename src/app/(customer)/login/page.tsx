@@ -19,6 +19,10 @@ const getFriendlyLoginMessage = (error: unknown) => {
     return "No account found for this email. Please sign up first.";
   }
 
+  if (message.includes("email not confirmed") || message.includes("not confirmed")) {
+    return "Your email address has not been verified yet. Please use the Sign Up page to complete OTP verification.";
+  }
+
   return (error as { message?: string })?.message ?? "Login failed. Please try again.";
 };
 
