@@ -26,7 +26,7 @@ export function Footer() {
 
 						<div className="mt-8 flex justify-center lg:justify-start">
 							<Link
-								href="/profile"
+								href="/profile/cards?apply=true"
 								className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 !text-white font-bold text-xs uppercase tracking-wider px-6 py-3 transition-all border-b-[4px] border-emerald-700 hover:bg-emerald-400 hover:border-emerald-600 active:translate-y-[2px] active:border-b-[2px] shadow-md shadow-emerald-950/40 select-none cursor-pointer w-auto"
 								style={{ color: '#ffffff' }}
 							>

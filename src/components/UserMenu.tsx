@@ -66,6 +66,13 @@ export default function UserMenu() {
               View Profile
             </Link>
             <Link
+              href="/profile/cards"
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 border-b border-slate-50"
+            >
+              My Cards & Wallet
+            </Link>
+            <Link
               href="/profile/orders"
               onClick={() => setIsOpen(false)}
               className="block px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 border-b border-slate-50"

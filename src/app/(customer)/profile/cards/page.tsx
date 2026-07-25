@@ -179,6 +179,15 @@ export default function CardsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("apply") === "true") {
+        setShowApplyModal(true);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (typeof window === "undefined" || !user) return;
     if (user.user_metadata?.full_name) {
       setFullName(user.user_metadata.full_name);
@@ -230,6 +239,7 @@ export default function CardsPage() {
     setIsSubmitting(true);
 
     try {
+      let insertedData: any[] | null = null;
       const payload = {
         user_email: user?.email,
         name: fullName.trim(),
@@ -244,13 +254,31 @@ export default function CardsPage() {
         .select();
 
       if (error) {
-        console.error("Error inserting application:", error);
-        setFormError("Could not submit application. Please try again.");
-        setIsSubmitting(false);
-        return;
+        console.warn("Primary insert error, attempting fallback insert:", error);
+        const { data: retryInserted, error: retryError } = await supabase
+          .from("card_applications")
+          .insert({
+            email: user?.email,
+            user_email: user?.email,
+            name: fullName.trim(),
+            phone: phoneNumber.trim(),
+            card_type: cardType,
+            status: "PENDING",
+          })
+          .select();
+
+        if (retryError) {
+          console.error("Error inserting application:", error, retryError);
+          setFormError("Could not submit application. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+        insertedData = retryInserted;
+      } else {
+        insertedData = inserted;
       }
 
-      const normalizedInserted = inserted ? inserted.map(normalizeCardApplication) : [];
+      const normalizedInserted = insertedData ? insertedData.map(normalizeCardApplication) : [];
       const updatedApps = normalizedInserted.length > 0
         ? [...applications.filter(a => (a.user_email || a.email)?.toLowerCase() !== user?.email?.toLowerCase()), ...normalizedInserted]
         : applications;
