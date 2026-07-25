@@ -15,10 +15,11 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [wishlist, setWishlist] = useState<Product[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load wishlist from localStorage on mount
   useEffect(() => {
-    const storedWishlist = localStorage.getItem("asali_swad_wishlist");
+    const storedWishlist = typeof window !== "undefined" ? localStorage.getItem("asali_swad_wishlist") : null;
     if (storedWishlist) {
       try {
         setWishlist(JSON.parse(storedWishlist));
@@ -26,12 +27,15 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to parse wishlist from localStorage", error);
       }
     }
+    setIsLoaded(true);
   }, []);
 
-  // Save wishlist to localStorage whenever it changes
+  // Save wishlist to localStorage whenever it changes after initial load
   useEffect(() => {
-    localStorage.setItem("asali_swad_wishlist", JSON.stringify(wishlist));
-  }, [wishlist]);
+    if (isLoaded && typeof window !== "undefined") {
+      localStorage.setItem("asali_swad_wishlist", JSON.stringify(wishlist));
+    }
+  }, [wishlist, isLoaded]);
 
   const addToWishlist = (product: Product) => {
     setWishlist((prev) => {

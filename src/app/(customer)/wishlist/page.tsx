@@ -21,7 +21,7 @@ export default function WishlistPage() {
           <aside className="w-full lg:w-1/3 space-y-6">
             <div className="rounded-[2rem] bg-white overflow-hidden premium-shadow border border-slate-100">
               <div className="p-2">
-                <Link href="/cart" className="flex items-center gap-4 px-6 py-4 text-sm font-bold text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
+                <Link href="/profile/orders" className="flex items-center gap-4 px-6 py-4 text-sm font-bold text-slate-600 hover:bg-slate-50 rounded-2xl transition-all">
                   <span className="text-slate-400">📦</span> My Orders
                 </Link>
                 <Link href="/wishlist" className="flex items-center gap-4 px-6 py-4 text-sm font-black text-emerald-600 bg-emerald-50 rounded-2xl transition-all">

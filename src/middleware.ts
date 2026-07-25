@@ -7,7 +7,6 @@ const protectedUserRoutes = [
   '/profile',
   '/dashboard',
   '/orders',
-  '/wishlist',
   '/settings',
   '/account',
 ];

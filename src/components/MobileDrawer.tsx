@@ -123,6 +123,7 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   { name: "All Products", href: "/products" },
                   { name: "Guides & Resources", href: "/guides" },
                   { name: "Your Cart", href: "/cart" },
+                  { name: "My Wishlist", href: "/wishlist" },
                   { name: "Track Order", href: "/profile/orders" },
                 ].map((item) => (
                   <Link
