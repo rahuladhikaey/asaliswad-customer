@@ -134,11 +134,11 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("OTP API Error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { success: false, error: error?.message || "Failed to process OTP verification request. Please try again." },
+      { status: 400 }
     );
   }
 }
