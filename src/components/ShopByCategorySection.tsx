@@ -9,20 +9,10 @@ import { getCategoryIcon } from "@/utils/categoryIcons";
 
 const MAIN_CATEGORY_TABS = ["ALL", "GROCERY", "BAKERY", "SNACKS", "SPICES", "OILS & GHEE"];
 
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: 1001, name: "Spices & Masala", main_category: "Spices" },
-  { id: 1002, name: "Handmade Bori", main_category: "Snacks" },
-  { id: 1003, name: "Pulses & Dals", main_category: "Grocery" },
-  { id: 1004, name: "Pure Oils & Ghee", main_category: "Oils & Ghee" },
-  { id: 1005, name: "Rice & Grains", main_category: "Grocery" },
-  { id: 1006, name: "Pickles & Chutney", main_category: "Snacks" },
-  { id: 1007, name: "Sweets & Snacks", main_category: "Bakery" },
-  { id: 1008, name: "Organic Specials", main_category: "Grocery" }
-];
-
 export function ShopByCategorySection({ initialCategories = [] }: { initialCategories?: Category[] }) {
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [selectedMainTab, setSelectedMainTab] = useState<string>("ALL");
+  const [loading, setLoading] = useState(true);
 
   const fetchCategories = async () => {
     try {
@@ -32,25 +22,30 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
         if (cached) {
           try {
             const parsed = JSON.parse(cached);
-            if (parsed && parsed.length > 0) setCategories(parsed);
+            if (parsed && parsed.length > 0) {
+              setCategories(parsed);
+              setLoading(false);
+            }
           } catch (e) {}
         }
       }
 
-      // 2. Fetch live DB categories
+      // 2. Fetch live DB categories directly from Database B
       const { data, error } = await supabase
         .from("categories")
         .select("*")
         .order("name", { ascending: true });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         setCategories(data as Category[]);
         if (typeof window !== "undefined") {
           localStorage.setItem("asali_swad_categories_cache", JSON.stringify(data));
         }
       }
     } catch (err) {
-      console.error("Error fetching categories:", err);
+      console.error("Error fetching categories from Database:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -68,10 +63,7 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
     };
   }, []);
 
-  // Merge DB categories with DEFAULT_CATEGORIES so storefront is never empty
-  const displayCategories = categories.length > 0 ? categories : DEFAULT_CATEGORIES;
-
-  const filteredCategories = displayCategories.filter((c) => {
+  const filteredCategories = categories.filter((c) => {
     if (selectedMainTab === "ALL") return true;
     const mainCat = (c.main_category || "Grocery").toLowerCase();
     return mainCat === selectedMainTab.toLowerCase();
@@ -100,98 +92,81 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
         }
       `}} />
 
-      {/* Header & Main Category Selector Tabs (Blinkit Style) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <h2 className="text-xl font-black text-slate-900 md:text-2xl">Shop by Category</h2>
+      {/* Header & Main Taxonomy Tabs */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+          Shop by Category
+        </h2>
 
-        {/* Main Category Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          {MAIN_CATEGORY_TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setSelectedMainTab(tab)}
-              className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
-                selectedMainTab.toLowerCase() === tab.toLowerCase()
-                  ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
-                  : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Mobile Coverflow */}
-      <div className="coverflow-scroll-container no-scrollbar w-full overflow-x-auto pb-8 snap-x md:hidden">
-        <div className="flex gap-x-4 sm:gap-x-6 w-max px-2 snap-start">
-          {filteredCategories.map((category) => {
-            const icon = getCategoryIcon(category.name);
+        {/* Main Taxonomy Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+          {MAIN_CATEGORY_TABS.map((tab) => {
+            const isActive = selectedMainTab === tab;
             return (
-              <Link 
-                href={`/products?category=${category.id}`}
-                key={category.id} 
-                className="coverflow-item group/item relative flex flex-col items-center gap-2 sm:gap-3 cursor-pointer focus:outline-none w-[80px] sm:w-[95px]"
-                style={{ perspective: "1000px", transformStyle: "preserve-3d" }}
+              <button
+                key={tab}
+                onClick={() => setSelectedMainTab(tab)}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-bold tracking-wider transition-all uppercase whitespace-nowrap ${
+                  isActive
+                    ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 scale-105"
+                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-slate-900"
+                }`}
               >
-                {/* Premium Circle */}
-                <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-full bg-white border border-slate-100 shadow-sm transition-all duration-500 ease-out group-hover/item:border-emerald-400/60 group-hover/item:bg-emerald-50/50 group-hover/item:shadow-[0_20px_40px_-10px_rgb(16,185,129,0.3)] group-hover/item:-translate-y-2 group-hover/item:rotate-x-6 group-hover/item:-rotate-y-6">
-                  <span className="text-3xl sm:text-4xl transition-transform duration-500 group-hover/item:scale-110 drop-shadow-sm relative z-10 flex items-center justify-center w-full h-full">
-                    {category.image_url ? (
-                      <img src={category.image_url} alt={category.name} className="object-cover w-full h-full rounded-full" />
-                    ) : icon.type === 'image' ? (
-                      <Image src={icon.value} alt={category.name} width={44} height={44} className="object-contain w-9 h-9 sm:w-11 sm:h-11" />
-                    ) : (
-                      icon.value
-                    )}
-                  </span>
-                  
-                  {/* Glossy overlay reflection on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover/item:opacity-100 transition-opacity duration-500 rounded-full pointer-events-none" />
-                </div>
-                <span className="w-full text-center text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-700 group-hover/item:text-emerald-700 transition-colors duration-500 line-clamp-2">
-                  {category.name}
-                </span>
-              </Link>
+                {tab}
+              </button>
             );
           })}
         </div>
       </div>
 
-      {/* Desktop Responsive Grid */}
-      <div className="hidden md:block w-full">
-        <div className="grid gap-6 px-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))' }}>
-          {filteredCategories.map((category) => {
-            const icon = getCategoryIcon(category.name);
+      {/* Categories Display */}
+      {loading && categories.length === 0 ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-8 text-center">
+          <p className="text-xs font-bold text-slate-500">No categories found in database.</p>
+          <p className="text-[11px] text-slate-400 mt-1">Categories created by Admin will appear here automatically.</p>
+        </div>
+      ) : (
+        <div className="coverflow-scroll-container flex sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 overflow-x-auto pb-6 pt-2 px-1 no-scrollbar perspective-1000">
+          {filteredCategories.map((cat) => {
+            const imageSrc = cat.image_url || null;
+            const iconSymbol = cat.icon || getCategoryIcon(cat.name);
+
             return (
-              <Link 
-                href={`/products?category=${category.id}`}
-                key={category.id} 
-                className="group/item relative flex flex-col items-center gap-2 sm:gap-3 cursor-pointer focus:outline-none w-full"
+              <Link
+                key={cat.id}
+                href={`/products?category=${encodeURIComponent(cat.name)}`}
+                className="coverflow-item group flex-shrink-0 w-28 sm:w-auto scroll-snap-align-center flex flex-col items-center text-center transition-all duration-300 transform hover:-translate-y-1.5"
               >
-                {/* Premium Circle */}
-                <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-full bg-white border border-slate-100 shadow-sm transition-all duration-500 ease-out group-hover/item:border-emerald-400/60 group-hover/item:bg-emerald-50/50 group-hover/item:shadow-[0_20px_40px_-10px_rgb(16,185,129,0.3)] group-hover/item:-translate-y-2 group-hover/item:rotate-x-6 group-hover/item:-rotate-y-6">
-                  <span className="text-3xl sm:text-4xl md:text-5xl transition-transform duration-500 group-hover/item:scale-110 drop-shadow-sm relative z-10 flex items-center justify-center w-full h-full">
-                    {category.image_url ? (
-                      <img src={category.image_url} alt={category.name} className="object-cover w-full h-full rounded-full" />
-                    ) : icon.type === 'image' ? (
-                      <Image src={icon.value} alt={category.name} width={56} height={56} className="object-contain w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14" />
-                    ) : (
-                      icon.value
-                    )}
-                  </span>
-                  
-                  {/* Glossy overlay reflection on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover/item:opacity-100 transition-opacity duration-500 rounded-full pointer-events-none" />
+                {/* Blinkit-Style Square / Circular Image Container */}
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white border border-slate-100 shadow-md group-hover:shadow-xl group-hover:border-emerald-500/30 flex items-center justify-center overflow-hidden transition-all p-2">
+                  {imageSrc ? (
+                    <Image
+                      src={imageSrc}
+                      alt={cat.name}
+                      width={96}
+                      height={96}
+                      className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="text-3xl sm:text-4xl transform group-hover:scale-125 transition-transform duration-300 select-none">
+                      {iconSymbol}
+                    </span>
+                  )}
                 </div>
-                <span className="w-full text-center text-[9px] sm:text-[10px] lg:text-[11px] font-black uppercase tracking-wider text-slate-700 group-hover/item:text-emerald-700 transition-colors duration-500 line-clamp-2">
-                  {category.name}
+
+                <span className="mt-2.5 text-[11px] sm:text-xs font-bold text-slate-700 group-hover:text-emerald-700 line-clamp-2 uppercase tracking-wide px-1">
+                  {cat.name}
                 </span>
               </Link>
             );
           })}
         </div>
-      </div>
+      )}
     </section>
   );
 }
