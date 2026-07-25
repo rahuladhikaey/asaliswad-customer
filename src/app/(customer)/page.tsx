@@ -9,18 +9,7 @@ import { AddToCartButton } from "@/components/AddToCartButton";
 import { BannerCarousel } from "@/components/BannerCarousel";
 import { Header } from "@/components/Header";
 import { MovingOfferBanner } from "@/components/MovingOfferBanner";
-import { getCategoryIcon } from "@/utils/categoryIcons";
-
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: 1, name: "Spices & Masala" },
-  { id: 2, name: "Handmade Bori" },
-  { id: 3, name: "Pulses & Dals" },
-  { id: 4, name: "Pure Oils & Ghee" },
-  { id: 5, name: "Rice & Grains" },
-  { id: 6, name: "Pickles & Chutney" },
-  { id: 7, name: "Sweets & Snacks" },
-  { id: 8, name: "Organic Specials" }
-];
+import { ShopByCategorySection } from "@/components/ShopByCategorySection";
 
 const fetchHomeData = async (brandFilter: boolean = false) => {
   let categories: Category[] = [];
@@ -34,8 +23,6 @@ const fetchHomeData = async (brandFilter: boolean = false) => {
 
     if (catData && catData.length > 0) {
       categories = catData as Category[];
-    } else {
-      categories = DEFAULT_CATEGORIES;
     }
 
     let query = supabaseServer
@@ -55,7 +42,6 @@ const fetchHomeData = async (brandFilter: boolean = false) => {
     }
   } catch (e) {
     console.error("Home data fetch notice:", e);
-    categories = DEFAULT_CATEGORIES;
   }
 
   return {
@@ -90,103 +76,8 @@ export default async function HomePage(props: { searchParams?: Promise<{ [key: s
           </Suspense>
         </div>
 
-        {/* Categories Section */}
-        <section className="mt-10">
-          <style dangerouslySetInnerHTML={{ __html: `
-            @media (max-width: 767px) {
-              .coverflow-scroll-container {
-                scroll-snap-type: x mandatory;
-              }
-              @supports (animation-timeline: view()) {
-                .coverflow-item {
-                  view-timeline-name: --item-timeline;
-                  view-timeline-axis: inline;
-                  animation: coverflow linear both;
-                  animation-timeline: --item-timeline;
-                }
-                @keyframes coverflow {
-                  0% { transform: rotateY(40deg) scale(0.85) translateZ(-50px); opacity: 0.6; }
-                  50% { transform: rotateY(0deg) scale(1) translateZ(0px); opacity: 1; z-index: 10; }
-                  100% { transform: rotateY(-40deg) scale(0.85) translateZ(-50px); opacity: 0.6; }
-                }
-              }
-            }
-          `}} />
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-black text-slate-900 md:text-2xl">Shop by Category</h2>
-          </div>
-
-          {/* Mobile Coverflow */}
-          <div className="coverflow-scroll-container no-scrollbar w-full overflow-x-auto pb-8 snap-x md:hidden">
-            <div className="flex gap-x-4 sm:gap-x-6 w-max px-2 snap-start">
-              {categories.map((category) => {
-                const icon = getCategoryIcon(category.name);
-                return (
-                  <Link 
-                    href={`/products?category=${category.id}`}
-                    key={category.id} 
-                    className="coverflow-item group/item relative flex flex-col items-center gap-2 sm:gap-3 cursor-pointer focus:outline-none w-[75px] sm:w-[90px]"
-                    style={{ perspective: "1000px", transformStyle: "preserve-3d" }}
-                  >
-                    {/* Premium Circle */}
-                    <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-full bg-white border border-slate-100 shadow-sm transition-all duration-500 ease-out group-hover/item:border-emerald-400/60 group-hover/item:bg-emerald-50/50 group-hover/item:shadow-[0_20px_40px_-10px_rgb(16,185,129,0.3)] group-hover/item:-translate-y-2 group-hover/item:rotate-x-6 group-hover/item:-rotate-y-6">
-                      <span className="text-3xl sm:text-4xl transition-transform duration-500 group-hover/item:scale-110 drop-shadow-sm relative z-10 flex items-center justify-center w-full h-full">
-                        {category.image_url ? (
-                          <img src={category.image_url} alt={category.name} className="object-cover w-full h-full rounded-full" />
-                        ) : icon.type === 'image' ? (
-                          <Image src={icon.value} alt={category.name} width={40} height={40} className="object-contain w-8 h-8 sm:w-10 sm:h-10" />
-                        ) : (
-                          icon.value
-                        )}
-                      </span>
-                      
-                      {/* Glossy overlay reflection on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover/item:opacity-100 transition-opacity duration-500 rounded-full pointer-events-none" />
-                    </div>
-                    <span className="w-full text-center text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-slate-700 group-hover/item:text-emerald-700 transition-colors duration-500 line-clamp-2">
-                      {category.name}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Desktop Responsive Grid */}
-          <div className="hidden md:block w-full">
-            <div className="grid gap-6 px-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
-              {categories.map((category) => {
-                const icon = getCategoryIcon(category.name);
-                return (
-                  <Link 
-                    href={`/products?category=${category.id}`}
-                    key={category.id} 
-                    className="group/item relative flex flex-col items-center gap-2 sm:gap-3 cursor-pointer focus:outline-none w-full"
-                  >
-                    {/* Premium Circle */}
-                    <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-full bg-white border border-slate-100 shadow-sm transition-all duration-500 ease-out group-hover/item:border-emerald-400/60 group-hover/item:bg-emerald-50/50 group-hover/item:shadow-[0_20px_40px_-10px_rgb(16,185,129,0.3)] group-hover/item:-translate-y-2 group-hover/item:rotate-x-6 group-hover/item:-rotate-y-6">
-                      <span className="text-3xl sm:text-4xl md:text-5xl transition-transform duration-500 group-hover/item:scale-110 drop-shadow-sm relative z-10 flex items-center justify-center w-full h-full">
-                        {category.image_url ? (
-                          <img src={category.image_url} alt={category.name} className="object-cover w-full h-full rounded-full" />
-                        ) : icon.type === 'image' ? (
-                          <Image src={icon.value} alt={category.name} width={56} height={56} className="object-contain w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14" />
-                        ) : (
-                          icon.value
-                        )}
-                      </span>
-                      
-                      {/* Glossy overlay reflection on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover/item:opacity-100 transition-opacity duration-500 rounded-full pointer-events-none" />
-                    </div>
-                    <span className="w-full text-center text-[9px] sm:text-[10px] lg:text-[11px] font-black uppercase tracking-wider text-slate-700 group-hover/item:text-emerald-700 transition-colors duration-500 line-clamp-2">
-                      {category.name}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+        {/* Real-time Shop by Category Section (Blinkit Style with Main Category Selector) */}
+        <ShopByCategorySection initialCategories={categories} />
 
         {/* Featured Products Grid */}
         <section className="mt-10 mb-12">

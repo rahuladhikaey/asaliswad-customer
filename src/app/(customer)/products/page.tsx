@@ -56,6 +56,19 @@ function ProductsContent() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      // Check local cache for categories first
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem("asali_swad_categories_cache");
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (parsed && parsed.length > 0) setCategories(parsed);
+          } catch (e) {
+            // ignore
+          }
+        }
+      }
+
       let productsQuery = supabase.from("products").select("*").order("id", { ascending: false });
       
       if (brandParam) {
@@ -67,7 +80,12 @@ function ProductsContent() {
         supabase.from("categories").select("*").order("name", { ascending: true }),
       ]);
       setProducts((productsData ?? []) as Product[]);
-      setCategories((categoriesData ?? []) as Category[]);
+      if (categoriesData && categoriesData.length > 0) {
+        setCategories(categoriesData as Category[]);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("asali_swad_categories_cache", JSON.stringify(categoriesData));
+        }
+      }
       setLoading(false);
     };
     load();
