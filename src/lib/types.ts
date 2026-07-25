@@ -31,6 +31,9 @@ export type Product = {
   sku?: string;
   low_stock_limit?: number;
   status?: string;
+  is_active?: boolean;
+  is_approved?: boolean;
+  approval_status?: string;
   packages?: ProductPackage[];
 };
 

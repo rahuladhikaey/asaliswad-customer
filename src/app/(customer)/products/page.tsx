@@ -53,42 +53,59 @@ function ProductsContent() {
     }
   }, [searchParam]);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      // Check local cache for categories first
+  const load = async () => {
+    setLoading(true);
+    // Check local cache for categories first
+    if (typeof window !== "undefined") {
+      const cached = localStorage.getItem("asali_swad_categories_cache");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.length > 0) setCategories(parsed);
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+
+    let productsQuery = supabase.from("products").select("*").order("id", { ascending: false });
+    
+    if (brandParam) {
+      productsQuery = productsQuery.eq('brand', 'asaliswad');
+    }
+
+    const [{ data: productsData }, { data: categoriesData }] = await Promise.all([
+      productsQuery,
+      supabase.from("categories").select("*").order("name", { ascending: true }),
+    ]);
+
+    // Only show active & non-rejected products
+    const activeProducts = (productsData ?? []).filter((p: any) => 
+      p.is_active !== false && p.is_approved !== false && p.approval_status !== 'rejected'
+    );
+
+    setProducts(activeProducts as Product[]);
+    if (categoriesData && categoriesData.length > 0) {
+      setCategories(categoriesData as Category[]);
       if (typeof window !== "undefined") {
-        const cached = localStorage.getItem("asali_swad_categories_cache");
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (parsed && parsed.length > 0) setCategories(parsed);
-          } catch (e) {
-            // ignore
-          }
-        }
+        localStorage.setItem("asali_swad_categories_cache", JSON.stringify(categoriesData));
       }
+    }
+    setLoading(false);
+  };
 
-      let productsQuery = supabase.from("products").select("*").order("id", { ascending: false });
-      
-      if (brandParam) {
-        productsQuery = productsQuery.eq('brand', 'asaliswad');
-      }
-
-      const [{ data: productsData }, { data: categoriesData }] = await Promise.all([
-        productsQuery,
-        supabase.from("categories").select("*").order("name", { ascending: true }),
-      ]);
-      setProducts((productsData ?? []) as Product[]);
-      if (categoriesData && categoriesData.length > 0) {
-        setCategories(categoriesData as Category[]);
-        if (typeof window !== "undefined") {
-          localStorage.setItem("asali_swad_categories_cache", JSON.stringify(categoriesData));
-        }
-      }
-      setLoading(false);
-    };
+  useEffect(() => {
     load();
+
+    // Live Realtime listener so Admin changes to products instantly update Customer site
+    const channel = supabase
+      .channel("customer-products-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => load())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [brandParam]);
 
   const filtered = useMemo(() => {

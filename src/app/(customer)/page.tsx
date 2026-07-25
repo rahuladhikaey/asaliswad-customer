@@ -28,6 +28,8 @@ const fetchHomeData = async (brandFilter: boolean = false) => {
     let query = supabaseServer
       .from("products")
       .select("*")
+      .neq('is_active', false)
+      .neq('is_approved', false)
       .order("created_at", { ascending: false });
 
     if (brandFilter) {
@@ -38,7 +40,7 @@ const fetchHomeData = async (brandFilter: boolean = false) => {
 
     const { data: prodData } = await query;
     if (prodData && prodData.length > 0) {
-      products = prodData as Product[];
+      products = (prodData as Product[]).filter(p => p.approval_status !== 'rejected');
     }
   } catch (e) {
     console.error("Home data fetch notice:", e);
