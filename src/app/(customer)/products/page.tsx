@@ -193,11 +193,10 @@ function ProductsContent() {
                             className="h-full w-full object-contain transition duration-500 group-hover:scale-110"
                           />
                           
-                          {/* Discount Badge (vertical layout on mobile) */}
+                          {/* Discount Badge */}
                           {discountPercent > 0 && (
-                            <div className="absolute top-2 left-2 z-10 bg-black/90 text-white rounded-md px-1.5 py-0.5 text-center flex flex-col items-center justify-center leading-none">
-                              <span className="text-[9px] sm:text-[10px] font-extrabold">{discountPercent}%</span>
-                              <span className="text-[6px] sm:text-[7px] font-black tracking-wide">OFF</span>
+                            <div className="absolute top-2 left-2 z-10 bg-emerald-600 text-white rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-wider shadow-md shadow-emerald-600/30">
+                              {discountPercent}% OFF
                             </div>
                           )}
 
@@ -229,32 +228,34 @@ function ProductsContent() {
                              </div>
 
                              <p className="mt-1 hidden sm:line-clamp-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                {product.description || "Asali Swad Choice"}
+                                {product.brand || product.description || "Asali Swad Choice"}
                              </p>
                           </div>
                           
-                          <div className="mt-3 sm:mt-6 flex items-end justify-between gap-1.5">
+                          <div className="mt-3 sm:mt-4 flex flex-col space-y-2">
                               <div className="flex flex-col">
-                                <div className="flex items-baseline gap-1 flex-wrap">
+                                <div className="flex items-baseline gap-1.5 flex-wrap">
                                   <span className="text-sm sm:text-base font-black text-slate-900">₹{product.price}</span>
                                   {product.mrp && product.mrp > product.price && (
-                                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 line-through">
+                                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 line-through font-mono">
                                       ₹{product.mrp}
                                     </span>
                                   )}
                                 </div>
-                                {discountPercent > 0 && (
-                                  <span className="text-[8px] sm:text-[9px] font-extrabold text-emerald-600">
-                                    {discountPercent}% off
+                                {discountPercent > 0 && product.mrp && (
+                                  <span className="text-[8px] sm:text-[9px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.5 rounded-md w-fit mt-0.5">
+                                    Save ₹{product.mrp - product.price} ({discountPercent}% OFF)
                                   </span>
                                 )}
                                 <span className={`text-[8px] sm:text-[10px] font-bold mt-0.5 ${product.stock && product.stock > 0 ? "text-emerald-600" : "text-rose-500"}`}>
                                   {product.stock && product.stock > 0 ? "IN STOCK" : "OUT OF STOCK"}
                                 </span>
                               </div>
-                              {product.stock && product.stock > 0 ? (
-                                <AddToCartButton product={product} compact={true} />
-                              ) : null}
+                              <div className="flex justify-end">
+                                {product.stock && product.stock > 0 ? (
+                                  <AddToCartButton product={product} compact={true} />
+                                ) : null}
+                              </div>
                            </div>
 
                         </div>
