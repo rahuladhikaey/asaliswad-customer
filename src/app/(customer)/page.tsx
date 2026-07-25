@@ -130,8 +130,10 @@ export default async function HomePage(props: { searchParams?: Promise<{ [key: s
                   >
                     {/* Premium Circle */}
                     <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-full bg-white border border-slate-100 shadow-sm transition-all duration-500 ease-out group-hover/item:border-emerald-400/60 group-hover/item:bg-emerald-50/50 group-hover/item:shadow-[0_20px_40px_-10px_rgb(16,185,129,0.3)] group-hover/item:-translate-y-2 group-hover/item:rotate-x-6 group-hover/item:-rotate-y-6">
-                      <span className="text-3xl sm:text-4xl transition-transform duration-500 group-hover/item:scale-110 drop-shadow-sm relative z-10 flex items-center justify-center">
-                        {icon.type === 'image' ? (
+                      <span className="text-3xl sm:text-4xl transition-transform duration-500 group-hover/item:scale-110 drop-shadow-sm relative z-10 flex items-center justify-center w-full h-full">
+                        {category.image_url ? (
+                          <img src={category.image_url} alt={category.name} className="object-cover w-full h-full rounded-full" />
+                        ) : icon.type === 'image' ? (
                           <Image src={icon.value} alt={category.name} width={40} height={40} className="object-contain w-8 h-8 sm:w-10 sm:h-10" />
                         ) : (
                           icon.value
@@ -163,8 +165,10 @@ export default async function HomePage(props: { searchParams?: Promise<{ [key: s
                   >
                     {/* Premium Circle */}
                     <div className="flex aspect-square w-full items-center justify-center overflow-hidden rounded-full bg-white border border-slate-100 shadow-sm transition-all duration-500 ease-out group-hover/item:border-emerald-400/60 group-hover/item:bg-emerald-50/50 group-hover/item:shadow-[0_20px_40px_-10px_rgb(16,185,129,0.3)] group-hover/item:-translate-y-2 group-hover/item:rotate-x-6 group-hover/item:-rotate-y-6">
-                      <span className="text-3xl sm:text-4xl md:text-5xl transition-transform duration-500 group-hover/item:scale-110 drop-shadow-sm relative z-10 flex items-center justify-center">
-                        {icon.type === 'image' ? (
+                      <span className="text-3xl sm:text-4xl md:text-5xl transition-transform duration-500 group-hover/item:scale-110 drop-shadow-sm relative z-10 flex items-center justify-center w-full h-full">
+                        {category.image_url ? (
+                          <img src={category.image_url} alt={category.name} className="object-cover w-full h-full rounded-full" />
+                        ) : icon.type === 'image' ? (
                           <Image src={icon.value} alt={category.name} width={56} height={56} className="object-contain w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14" />
                         ) : (
                           icon.value

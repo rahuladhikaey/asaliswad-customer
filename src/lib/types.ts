@@ -1,6 +1,9 @@
 export type Category = {
   id: number;
   name: string;
+  image_url?: string;
+  main_category?: string;
+  icon?: string;
 };
 
 export type ProductPackage = {
