@@ -9,10 +9,22 @@ import { getCategoryIcon } from "@/utils/categoryIcons";
 
 const MAIN_CATEGORY_TABS = ["ALL", "GROCERY", "BAKERY", "SNACKS", "SPICES", "OILS & GHEE"];
 
+const DEFAULT_CATEGORIES: Category[] = [
+  { id: 1, name: "Spices & Masala", main_category: "Spices" },
+  { id: 2, name: "Handmade Bori", main_category: "Snacks" },
+  { id: 3, name: "Pulses & Dals", main_category: "Grocery" },
+  { id: 4, name: "Pure Oils & Ghee", main_category: "Oils & Ghee" },
+  { id: 5, name: "Rice & Grains", main_category: "Grocery" },
+  { id: 6, name: "Pickles & Chutney", main_category: "Snacks" },
+  { id: 7, name: "Sweets & Snacks", main_category: "Bakery" },
+  { id: 8, name: "Organic Specials", main_category: "Grocery" }
+];
+
 export function ShopByCategorySection({ initialCategories = [] }: { initialCategories?: Category[] }) {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [categories, setCategories] = useState<Category[]>(
+    initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES
+  );
   const [selectedMainTab, setSelectedMainTab] = useState<string>("ALL");
-  const [loading, setLoading] = useState<boolean>(initialCategories.length === 0);
 
   const fetchCategories = async () => {
     try {
@@ -24,7 +36,6 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
             const parsed = JSON.parse(cached);
             if (parsed && parsed.length > 0) {
               setCategories(parsed);
-              setLoading(false);
             }
           } catch (e) {
             console.error("Local category cache parse error:", e);
@@ -46,8 +57,6 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
       }
     } catch (err) {
       console.error("Error fetching categories:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -65,15 +74,13 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
     };
   }, []);
 
-  const filteredCategories = categories.filter((c) => {
+  const displayCategories = categories.length > 0 ? categories : DEFAULT_CATEGORIES;
+
+  const filteredCategories = displayCategories.filter((c) => {
     if (selectedMainTab === "ALL") return true;
     const mainCat = (c.main_category || "Grocery").toLowerCase();
     return mainCat === selectedMainTab.toLowerCase();
   });
-
-  if (!loading && categories.length === 0) {
-    return null;
-  }
 
   return (
     <section className="mt-10">
