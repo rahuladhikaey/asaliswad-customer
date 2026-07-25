@@ -9,47 +9,19 @@ import { getCategoryIcon } from "@/utils/categoryIcons";
 
 const MAIN_CATEGORY_TABS = ["ALL", "GROCERY", "BAKERY", "SNACKS", "SPICES", "OILS & GHEE"];
 
-const DEFAULT_CATEGORIES: Category[] = [
-  { id: 1, name: "Spices & Masala", main_category: "Spices" },
-  { id: 2, name: "Handmade Bori", main_category: "Snacks" },
-  { id: 3, name: "Pulses & Dals", main_category: "Grocery" },
-  { id: 4, name: "Pure Oils & Ghee", main_category: "Oils & Ghee" },
-  { id: 5, name: "Rice & Grains", main_category: "Grocery" },
-  { id: 6, name: "Pickles & Chutney", main_category: "Snacks" },
-  { id: 7, name: "Sweets & Snacks", main_category: "Bakery" },
-  { id: 8, name: "Organic Specials", main_category: "Grocery" }
-];
-
 export function ShopByCategorySection({ initialCategories = [] }: { initialCategories?: Category[] }) {
-  const [categories, setCategories] = useState<Category[]>(
-    initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES
-  );
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [selectedMainTab, setSelectedMainTab] = useState<string>("ALL");
+  const [loading, setLoading] = useState<boolean>(initialCategories.length === 0);
 
   const fetchCategories = async () => {
     try {
-      // 1. Check local storage cache first
-      if (typeof window !== "undefined") {
-        const cached = localStorage.getItem("asali_swad_categories_cache");
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (parsed && parsed.length > 0) {
-              setCategories(parsed);
-            }
-          } catch (e) {
-            console.error("Local category cache parse error:", e);
-          }
-        }
-      }
-
-      // 2. Fetch fresh categories from real Supabase DB
       const { data, error } = await supabase
         .from("categories")
         .select("*")
         .order("name", { ascending: true });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         setCategories(data as Category[]);
         if (typeof window !== "undefined") {
           localStorage.setItem("asali_swad_categories_cache", JSON.stringify(data));
@@ -57,6 +29,8 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
       }
     } catch (err) {
       console.error("Error fetching categories:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,13 +48,24 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
     };
   }, []);
 
-  const displayCategories = categories.length > 0 ? categories : DEFAULT_CATEGORIES;
-
-  const filteredCategories = displayCategories.filter((c) => {
+  const filteredCategories = categories.filter((c) => {
     if (selectedMainTab === "ALL") return true;
     const mainCat = (c.main_category || "Grocery").toLowerCase();
     return mainCat === selectedMainTab.toLowerCase();
   });
+
+  if (!loading && categories.length === 0) {
+    return (
+      <section className="mt-10">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-xl font-black text-slate-900 md:text-2xl">Shop by Category</h2>
+        </div>
+        <div className="bg-white rounded-3xl p-8 text-center border border-slate-100 shadow-sm text-slate-400 font-bold text-xs">
+          No categories added yet. Add categories in Admin Panel to display here!
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-10">
