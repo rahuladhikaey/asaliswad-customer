@@ -893,6 +893,13 @@ function CheckoutContent() {
                 3. {paymentMethod === "ONLINE" ? "Pay instantly with Razorpay." : "Confirm your order instantly."}<br />
                 4. Get real-time updates on your delivery!
               </p>
+              <div className="mt-6 pt-4 border-t border-emerald-200/60 flex items-center justify-center text-[10px] font-black uppercase tracking-wider text-emerald-800 flex-wrap gap-3">
+                <Link href="/terms-and-conditions" target="_blank" className="hover:underline text-emerald-800">Terms & Conditions 📄</Link>
+                <span>•</span>
+                <Link href="/privacy-policy" target="_blank" className="hover:underline text-emerald-800">Privacy Policy 🔒</Link>
+                <span>•</span>
+                <Link href="/cancellation-and-refund-policy" target="_blank" className="hover:underline text-emerald-800">Refund Policy 🔄</Link>
+              </div>
             </div>
           </aside>
         </div>
