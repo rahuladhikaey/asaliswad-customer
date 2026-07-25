@@ -133,7 +133,9 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
         <div className="coverflow-scroll-container flex sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 overflow-x-auto pb-6 pt-2 px-1 no-scrollbar perspective-1000">
           {filteredCategories.map((cat) => {
             const imageSrc = cat.image_url || null;
-            const iconSymbol = cat.icon || getCategoryIcon(cat.name);
+            const iconInfo = typeof cat.icon === 'string' && cat.icon.trim() 
+              ? { type: 'emoji' as const, value: cat.icon } 
+              : getCategoryIcon(cat.name);
 
             return (
               <Link
@@ -152,9 +154,18 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
                       className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
                       unoptimized
                     />
+                  ) : iconInfo.type === 'image' ? (
+                    <Image
+                      src={iconInfo.value}
+                      alt={cat.name}
+                      width={96}
+                      height={96}
+                      className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
+                      unoptimized
+                    />
                   ) : (
                     <span className="text-3xl sm:text-4xl transform group-hover:scale-125 transition-transform duration-300 select-none">
-                      {iconSymbol}
+                      {iconInfo.value}
                     </span>
                   )}
                 </div>
