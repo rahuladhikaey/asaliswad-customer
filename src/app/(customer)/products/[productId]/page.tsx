@@ -21,8 +21,8 @@ const getProduct = async (productId: string) => {
   const { data, error } = await supabase
     .from("products")
     .select("*")
-    .eq("id", Number(productId))
-    .single();
+    .eq("id", productId)
+    .maybeSingle();
 
   if (error || !data) {
     console.error("Error fetching product:", error);
@@ -32,7 +32,7 @@ const getProduct = async (productId: string) => {
   return data as Product;
 };
 
-const getRelatedProducts = async (category_id: number, currentProductId: number) => {
+const getRelatedProducts = async (category_id: any, currentProductId: string | number) => {
   const { data, error } = await supabase
     .from("products")
     .select("*")

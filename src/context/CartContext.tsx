@@ -12,8 +12,8 @@ import { CartItem, Product } from "@/lib/types";
 type CartContextValue = {
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
-  removeFromCart: (productId: number) => void;
+  updateQuantity: (productId: number | string, quantity: number) => void;
+  removeFromCart: (productId: number | string) => void;
   clearCart: () => void;
   totalItems: number;
   totalValue: number;
@@ -106,7 +106,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: number | string, quantity: number) => {
     setCart((prev) =>
       prev
         .map((item) => {
@@ -123,7 +123,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: number | string) => {
     setCart((prev) => prev.filter((item) => item.id !== productId));
   };
 

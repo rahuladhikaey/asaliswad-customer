@@ -28,19 +28,19 @@ const fetchHomeData = async (brandFilter: boolean = false) => {
     let query = supabaseServer
       .from("products")
       .select("*")
-      .neq('is_active', false)
-      .neq('is_approved', false)
       .order("created_at", { ascending: false });
 
     if (brandFilter) {
       query = query.eq('brand', 'asaliswad');
     }
 
-    query = query.limit(20);
+    query = query.limit(50);
 
     const { data: prodData } = await query;
     if (prodData && prodData.length > 0) {
-      products = (prodData as Product[]).filter(p => p.approval_status !== 'rejected');
+      products = (prodData as Product[])
+        .filter(p => p.is_active !== false && p.is_approved !== false && p.approval_status !== 'rejected')
+        .slice(0, 20);
     }
   } catch (e) {
     console.error("Home data fetch notice:", e);

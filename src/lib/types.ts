@@ -1,5 +1,5 @@
 export type Category = {
-  id: number;
+  id: number | string;
   name: string;
   image_url?: string;
   main_category?: string;
@@ -15,15 +15,16 @@ export type ProductPackage = {
 };
 
 export type Product = {
-  id: number;
+  id: number | string;
   name: string;
   price: number;
   mrp?: number;
   description: string;
   image_url: string;
   images?: string[];
-  category_id: number;
+  category_id?: number | string;
   category_name?: string;
+  category?: string;
   offers?: string[];
   specifications?: Record<string, string>;
   brand?: string;

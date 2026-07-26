@@ -10,7 +10,7 @@ import { Bell, ArrowRight, PackageOpen, X } from "lucide-react";
 export default function NotificationsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deletedIds, setDeletedIds] = useState<number[]>([]);
+  const [deletedIds, setDeletedIds] = useState<(string | number)[]>([]);
 
   useEffect(() => {
     // Load dismissed notifications from localStorage
@@ -27,7 +27,7 @@ export default function NotificationsPage() {
       const { data } = await supabase
         .from("products")
         .select("*")
-        .order("id", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(10);
         
       if (data) {
@@ -41,7 +41,7 @@ export default function NotificationsPage() {
     fetchLatestProducts();
   }, []);
 
-  const handleDelete = (e: React.MouseEvent, productId: number) => {
+  const handleDelete = (e: React.MouseEvent, productId: string | number) => {
     e.preventDefault();
     e.stopPropagation();
     

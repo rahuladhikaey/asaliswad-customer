@@ -28,7 +28,7 @@ const getCategoryEmojiOrIcon = (name: string) => {
 function ProductsContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | string | null>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +39,7 @@ function ProductsContent() {
 
   useEffect(() => {
     if (categoryParam) {
-      setSelectedCategory(Number(categoryParam));
+      setSelectedCategory(categoryParam);
     } else {
       setSelectedCategory(null);
     }
@@ -68,7 +68,7 @@ function ProductsContent() {
       }
     }
 
-    let productsQuery = supabase.from("products").select("*").order("id", { ascending: false });
+    let productsQuery = supabase.from("products").select("*").order("created_at", { ascending: false });
     
     if (brandParam) {
       productsQuery = productsQuery.eq('brand', 'asaliswad');
@@ -110,11 +110,24 @@ function ProductsContent() {
 
   const filtered = useMemo(() => {
     return products.filter((product) => {
-      const matchesCategory = selectedCategory ? product.category_id === selectedCategory : true;
-      const matchesSearch = product.name.toLowerCase().includes(search.toLowerCase()) || product.description.toLowerCase().includes(search.toLowerCase());
+      let matchesCategory = true;
+      if (selectedCategory !== null && selectedCategory !== undefined && selectedCategory !== "") {
+        const catStr = String(selectedCategory).toLowerCase();
+        const prodCatIdStr = String(product.category_id || "").toLowerCase();
+        const prodCatNameStr = String(product.category_name || "").toLowerCase();
+        const prodCatStr = String(product.category || "").toLowerCase();
+
+        const foundCat = categories.find(c => String(c.id).toLowerCase() === catStr || c.name.toLowerCase() === catStr);
+        const targetValues = foundCat 
+          ? [String(foundCat.id).toLowerCase(), foundCat.name.toLowerCase()] 
+          : [catStr];
+
+        matchesCategory = targetValues.includes(prodCatIdStr) || targetValues.includes(prodCatNameStr) || targetValues.includes(prodCatStr);
+      }
+      const matchesSearch = !search || product.name.toLowerCase().includes(search.toLowerCase()) || (product.description || "").toLowerCase().includes(search.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [products, selectedCategory, search]);
+  }, [products, categories, selectedCategory, search]);
 
   return (
     <main className="min-h-screen bg-[#cefad0] text-slate-900">
@@ -212,9 +225,12 @@ function ProductsContent() {
                     const discountPercent = product.mrp && product.mrp > product.price
                       ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
                       : 0;
+                    const numId = typeof product.id === 'number' 
+                      ? product.id 
+                      : (String(product.id).split('').reduce((acc, char) => acc + char.charCodeAt(0), 0));
                     const mockRating = {
-                      rating: 4.0 + ((product.id * 7) % 11) / 10,
-                      count: 30 + ((product.id * 13) % 150)
+                      rating: Number((4.0 + ((numId * 7) % 11) / 10).toFixed(1)),
+                      count: 30 + ((numId * 13) % 150)
                     };
                     return (
                       <article key={product.id} className="group relative flex flex-col overflow-hidden rounded-xl sm:rounded-[2rem] bg-white premium-shadow transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/10 border border-slate-100/50">
