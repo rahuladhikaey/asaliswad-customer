@@ -14,13 +14,17 @@ export async function POST(req: Request) {
       user_id,
     } = await req.json();
 
+    const orderNumber = `AS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     // Save Order to Supabase as COD
     const { data, error } = await supabaseServer.from("orders").insert([
       {
+        order_number: orderNumber,
         customer_name,
         phone,
         address,
-        product_details: JSON.stringify(items),
+        items: items || [],
+        product_details: JSON.stringify(items || []),
         total_amount: total,
         payment_method: "COD",
         payment_status: "PENDING",

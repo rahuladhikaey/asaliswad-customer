@@ -7,6 +7,35 @@ import Link from "next/link";
 import { CartHeaderLink } from "@/components/CartHeaderLink";
 import UserMenu from "@/components/UserMenu";
 
+const normalizeAddressFromRecord = (record: any) => {
+  const addressLine = record?.address_line || record?.address_line1 || record?.address_line2 || "";
+  const lineParts = (addressLine || "").split(",").map((part: string) => part.trim()).filter(Boolean);
+
+  return {
+    name: record?.name || "",
+    phone: record?.phone || "",
+    village: record?.city || record?.village || lineParts[0] || "",
+    postOffice: record?.post_office || record?.address_line2 || lineParts[1] || "",
+    pincode: record?.pincode || "",
+    addressDetail: record?.landmark || record?.address_detail || record?.addressDetail || "",
+  };
+};
+
+const buildAddressPayload = (values: any, currentUser: any = null) => ({
+  user_id: currentUser?.id || null,
+  user_email: currentUser?.email || null,
+  name: values.name || "",
+  phone: values.phone || "",
+  address_line: [values.village, values.postOffice].filter(Boolean).join(", "),
+  address_line1: values.village || "",
+  address_line2: values.postOffice || "",
+  city: values.village || "",
+  pincode: values.pincode || "",
+  landmark: values.addressDetail || "",
+  is_default: true,
+  saved_at: new Date().toISOString(),
+});
+
 export default function AddressPage() {
   const { user, loading } = useAuth();
   
@@ -35,20 +64,13 @@ export default function AddressPage() {
         const { data: addr, error: addrErr } = await supabase
           .from("user_addresses")
           .select("*")
-          .eq("user_email", user.email)
+          .eq("user_id", user.id)
           .order("saved_at", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (addr && !addrErr) {
-          const parsed = {
-            name: addr.name,
-            phone: addr.phone,
-            village: addr.village,
-            postOffice: addr.post_office,
-            pincode: addr.pincode,
-            addressDetail: addr.address_detail,
-          };
+          const parsed = normalizeAddressFromRecord(addr);
           setSavedAddress(parsed);
           setEditName(parsed.name || "");
           setEditPhone(parsed.phone || "");
@@ -91,21 +113,40 @@ export default function AddressPage() {
 
       (async () => {
         try {
-          const addressPayload = {
-            user_email: user?.email || 'anonymous@asaliswad.shop',
+          const addressPayload = buildAddressPayload({
             name: editName.trim(),
             phone: editPhone.trim(),
             village: editVillage.trim(),
-            post_office: editPostOffice.trim(),
+            postOffice: editPostOffice.trim(),
             pincode: editPincode.trim(),
-            address_detail: editAddressDetail.trim(),
-          };
+            addressDetail: editAddressDetail.trim(),
+          }, user);
 
-          const { error } = await supabase
+          const { data: existingRows, error: existingErr } = await supabase
             .from('user_addresses')
-            .upsert(addressPayload, { onConflict: 'user_email' });
+            .select('id')
+            .eq('user_id', user?.id)
+            .limit(1);
 
-          if (error) console.error('Error saving address to Supabase:', error);
+          if (existingErr) {
+            console.error('Error loading existing address:', existingErr);
+            return;
+          }
+
+          if (existingRows && existingRows.length > 0) {
+            const { error } = await supabase
+              .from('user_addresses')
+              .update(addressPayload)
+              .eq('user_id', user?.id);
+
+            if (error) console.error('Error saving address to Supabase:', error);
+          } else {
+            const { error } = await supabase
+              .from('user_addresses')
+              .insert([addressPayload]);
+
+            if (error) console.error('Error saving address to Supabase:', error);
+          }
         } catch (e) {
           console.error('Address save error:', e);
         }

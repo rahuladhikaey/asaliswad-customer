@@ -9,6 +9,7 @@ import { ShieldCheck, Truck, RefreshCcw, Tag, ChevronRight, Star } from "lucide-
 import Link from "next/link";
 import ProductImageCarousel from "@/components/ProductImageCarousel";
 import { PackageSelection } from "@/components/PackageSelection";
+import { normalizeProductImages } from "@/lib/productImageUtils";
 
 export default function ProductDetailTemplate({
   product,
@@ -17,7 +18,7 @@ export default function ProductDetailTemplate({
   product: Product,
   relatedProducts?: Product[]
 }) {
-  const images = product.images || [product.image_url];
+  const images = useMemo(() => normalizeProductImages(product), [product]);
 
   const normalizedPackages = useMemo(() => {
     if (!product.packages || product.packages.length === 0) return [];

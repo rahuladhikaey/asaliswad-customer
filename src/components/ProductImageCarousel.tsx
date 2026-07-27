@@ -13,6 +13,8 @@ export default function ProductImageCarousel({
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
+  const normalizedImages = safeImages.length > 0 ? safeImages : ["/placeholder.jpg"];
 
   const sliderRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
@@ -21,7 +23,7 @@ export default function ProductImageCarousel({
   const prevTranslateRef = useRef(0);
 
   const itemsPerSlide = 1;
-  const totalSlides = images.length;
+  const totalSlides = normalizedImages.length;
 
   // Sync state to ref for animation loop
   useEffect(() => {
@@ -130,7 +132,7 @@ export default function ProductImageCarousel({
           className="flex transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
           style={{ transform: `translateX(${currentIndex * -100}%)` }}
         >
-          {images.map((img, idx) => (
+          {normalizedImages.map((img, idx) => (
             <div key={idx} className="flex-none w-full p-2">
               <div className="relative overflow-hidden rounded-[2.5rem] bg-white group shadow-sm border border-slate-100 flex items-center justify-center min-h-[320px] sm:min-h-[450px] md:min-h-[550px] aspect-square w-full">
                 <Image

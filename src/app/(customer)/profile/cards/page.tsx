@@ -241,8 +241,9 @@ export default function CardsPage() {
     try {
       const applicantEmail = user?.email || (typeof window !== "undefined" ? localStorage.getItem("asali_swad_user_email") : null) || "guest@asaliswad.com";
       
-      const newAppPayload = {
-        id: `APP-${Date.now().toString().slice(-6)}`,
+      const newAppPayload: any = {
+        // Do NOT set id — let DB auto-generate a UUID
+        user_id: user?.id || null,          // ← critical: needed for RLS SELECT policy
         user_email: applicantEmail,
         email: applicantEmail,
         name: fullName.trim(),
@@ -260,11 +261,13 @@ export default function CardsPage() {
           .insert(newAppPayload)
           .select();
 
-        if (!error && inserted) {
+        if (error) {
+          console.error("Card application DB insert error:", error);
+        } else if (inserted) {
           insertedData = inserted;
         }
       } catch (dbErr) {
-        console.warn("DB insert notice:", dbErr);
+        console.error("Card application DB insert exception:", dbErr);
       }
 
       // 2. Always maintain local state & LocalStorage cache

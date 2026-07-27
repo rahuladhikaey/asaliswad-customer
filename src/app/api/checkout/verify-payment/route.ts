@@ -52,13 +52,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Invalid signature" }, { status: 400 });
     }
 
+    const orderNumber = `AS-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
     // 2. Save Order to Supabase with "Payment Complete"
     const { data, error } = await supabaseServer.from("orders").insert([
       {
+        order_number: orderNumber,
         customer_name,
         phone,
         address,
-        product_details: JSON.stringify(items),
+        items: items || [],
+        product_details: JSON.stringify(items || []),
         total_amount: total,
         payment_method: "ONLINE",
         payment_status: "COMPLETE",

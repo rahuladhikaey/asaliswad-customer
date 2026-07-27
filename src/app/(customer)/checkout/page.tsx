@@ -9,6 +9,35 @@ import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 
+const normalizeAddressFromRecord = (record: any) => {
+  const addressLine = record?.address_line || record?.address_line1 || record?.address_line2 || "";
+  const lineParts = (addressLine || "").split(",").map((part: string) => part.trim()).filter(Boolean);
+
+  return {
+    name: record?.name || "",
+    phone: record?.phone || "",
+    village: record?.city || record?.village || lineParts[0] || "",
+    postOffice: record?.post_office || record?.address_line2 || lineParts[1] || "",
+    pincode: record?.pincode || "",
+    addressDetail: record?.landmark || record?.address_detail || record?.addressDetail || "",
+  };
+};
+
+const buildAddressPayload = (values: any, user: any = null) => ({
+  user_id: user?.id || null,
+  user_email: user?.email || null,
+  name: values.name || "",
+  phone: values.phone || "",
+  address_line: [values.village, values.postOffice].filter(Boolean).join(", "),
+  address_line1: values.village || "",
+  address_line2: values.postOffice || "",
+  city: values.village || "",
+  pincode: values.pincode || "",
+  landmark: values.addressDetail || "",
+  is_default: true,
+  saved_at: new Date().toISOString(),
+});
+
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -105,18 +134,19 @@ function CheckoutContent() {
         const { data, error } = await supabase
           .from('user_addresses')
           .select('*')
-          .eq('user_email', session.user.email)
+          .eq('user_id', session.user.id)
           .order('saved_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (data) {
-          if (data.name) setName(data.name);
-          if (data.phone) setPhone(data.phone);
-          if (data.village) setVillage(data.village);
-          if (data.post_office) setPostOffice(data.post_office);
-          if (data.pincode) setPincode(data.pincode);
-          if (data.address_detail) setAddressDetail(data.address_detail);
+          const saved = normalizeAddressFromRecord(data);
+          if (saved.name) setName(saved.name);
+          if (saved.phone) setPhone(saved.phone);
+          if (saved.village) setVillage(saved.village);
+          if (saved.postOffice) setPostOffice(saved.postOffice);
+          if (saved.pincode) setPincode(saved.pincode);
+          if (saved.addressDetail) setAddressDetail(saved.addressDetail);
           setUseSavedAddress(true);
           loadedFromDB = true;
         }
@@ -152,8 +182,8 @@ function CheckoutContent() {
           const { data, error } = await supabase
             .from("products")
             .select("*")
-            .eq("id", Number(productId))
-            .single();
+            .eq("id", productId)
+            .maybeSingle();
 
           if (data) {
             setBuyNowItem({ ...data, quantity });
@@ -302,25 +332,27 @@ function CheckoutContent() {
           } catch (e) { }
         }
 
-        if (session?.user?.email) {
-          const addressObj = {
-            user_email: session.user.email,
-            name,
-            phone,
-            village,
-            post_office: postOffice,
-            pincode,
-            address_detail: addressDetail,
-          };
-
-          const { error } = await supabase
+        if (session?.user?.id) {
+          const addressPayload = buildAddressPayload({ name, phone, village, postOffice, pincode, addressDetail }, session.user);
+          const { data: existingRows } = await supabase
             .from('user_addresses')
-            .upsert(addressObj, {
-              onConflict: 'user_email'
-            });
+            .select('id')
+            .eq('user_id', session.user.id)
+            .limit(1);
 
-          if (error) {
-            console.error('Error saving address:', error);
+          if (existingRows && existingRows.length > 0) {
+            const { error } = await supabase
+              .from('user_addresses')
+              .update(addressPayload)
+              .eq('user_id', session.user.id);
+
+            if (error) console.error('Error updating address:', error);
+          } else {
+            const { error } = await supabase
+              .from('user_addresses')
+              .insert([addressPayload]);
+
+            if (error) console.error('Error saving address:', error);
           }
         }
       };
@@ -454,7 +486,7 @@ function CheckoutContent() {
             .select('*')
             .eq('user_email', data.session.user.email)
             .eq('status', 'APPROVED')
-            .single();
+            .maybeSingle();
 
           if (applications) {
             setCardNumber(applications.card_number);

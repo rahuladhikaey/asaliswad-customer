@@ -288,9 +288,16 @@ CREATE POLICY "Users Read Own Orders" ON public.orders FOR SELECT USING (auth.ui
 
 -- F. CARD APPLICATIONS & NOTIFICATIONS POLICIES
 CREATE POLICY "Public Submit Card Application" ON public.card_applications FOR INSERT WITH CHECK (true);
+-- Users read own applications; authenticated admin users can read ALL (needed for admin panel)
 CREATE POLICY "Users Read Own Card Applications" ON public.card_applications FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+CREATE POLICY "Admin Read All Card Applications" ON public.card_applications FOR SELECT USING (auth.role() = 'authenticated');
+-- Admin can update card status (approve/reject/assign card number)
+CREATE POLICY "Admin Update Card Applications" ON public.card_applications FOR UPDATE USING (auth.role() = 'authenticated' OR auth.role() = 'service_role') WITH CHECK (true);
+CREATE POLICY "Admin Delete Card Applications" ON public.card_applications FOR DELETE USING (auth.role() = 'authenticated' OR auth.role() = 'service_role');
 CREATE POLICY "Public Submit Notify Request" ON public.notify_requests FOR INSERT WITH CHECK (true);
 CREATE POLICY "Users Read Own Notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+-- Allow admin broadcast notifications (no user_id required)
+CREATE POLICY "Admin Insert Notifications" ON public.notifications FOR INSERT WITH CHECK (true);
 
 -- G. SERVICE ROLE / ADMIN FULL ACCESS
 CREATE POLICY "Service Role Full Access Profiles" ON public.profiles FOR ALL TO service_role USING (true);
