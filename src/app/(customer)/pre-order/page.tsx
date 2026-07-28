@@ -149,18 +149,21 @@ function PreOrderContent() {
         body: JSON.stringify({ amount: bookingAmount }),
       });
 
-      let orderData;
+      const rawText = await response.text();
+      let orderData: any = null;
       try {
-        const text = await response.text();
-        orderData = JSON.parse(text);
+        orderData = JSON.parse(rawText);
       } catch (err) {
-        setMessage("Server error: Received an invalid response from the payment gateway.");
+        console.error('Pre-order create-order non-JSON response:', rawText);
+        setMessage(response.ok
+          ? "Server error: Received an invalid response from the payment gateway. Check console for details."
+          : `Payment gateway error (${response.status}): ${rawText.substring(0,200)}`);
         setSaving(false);
         return;
       }
 
-      if (!response.ok || !orderData.id) {
-        setMessage("Could not create Razorpay order. " + (orderData.error || "Please try again."));
+      if (!response.ok || !orderData?.id) {
+        setMessage(orderData?.error ? `Could not create Razorpay order: ${orderData.error}` : `Could not create Razorpay order. (${response.status})`);
         setSaving(false);
         return;
       }

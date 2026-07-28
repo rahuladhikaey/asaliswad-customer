@@ -372,13 +372,31 @@ function CheckoutContent() {
           }),
         });
 
-        const data = await response.json();
-        if (data.success) {
+        let data: any = null;
+        try {
+          // Try parsing JSON if available
+          data = await response.json();
+        } catch (e) {
+          // Response was not JSON (server error or empty body)
+          console.error('COD response parse error', e);
+          setMessage(response.ok ? "Could not place COD order. Please try again." : `Server error (${response.status}). Please try again.`);
+          setSaving(false);
+          return;
+        }
+
+        if (!response.ok) {
+          setMessage(data?.error ? `Could not place COD order: ${data.error}` : `Could not place COD order. (${response.status})`);
+          setSaving(false);
+          return;
+        }
+
+        if (data && data.success) {
           await saveUserAddress();
           if (!isBuyNow) clearCart();
           router.push(`/order-success?order_id=${data.orderId}`);
         } else {
-          setMessage(data.error ? `Could not place COD order: ${data.error}` : "Could not place COD order. Please try again.");
+          setMessage(data?.error ? `Could not place COD order: ${data.error}` : "Could not place COD order. Please try again.");
+          setSaving(false);
         }
       } else {
         // Handle Online Flow (Razorpay)
@@ -395,18 +413,21 @@ function CheckoutContent() {
           body: JSON.stringify({ amount: grandTotal }),
         });
 
-        let orderData;
+        let orderData: any = null;
+        const rawText = await response.text();
         try {
-          const text = await response.text();
-          orderData = JSON.parse(text);
+          orderData = JSON.parse(rawText);
         } catch (err) {
-          setMessage("Server error: Received an invalid response from the payment gateway.");
+          console.error('Create-order returned non-JSON response:', rawText);
+          setMessage(response.ok
+            ? "Server error: Received an invalid response from the payment gateway. Check console for details."
+            : `Payment gateway error (${response.status}): ${rawText.substring(0, 200)}`);
           setSaving(false);
           return;
         }
 
-        if (!response.ok || !orderData.id) {
-          setMessage("Could not create Razorpay order. " + (orderData.error || "Please try again."));
+        if (!response.ok || !orderData?.id) {
+          setMessage(orderData?.error ? `Could not create Razorpay order: ${orderData.error}` : `Could not create Razorpay order. (${response.status})`);
           setSaving(false);
           return;
         }

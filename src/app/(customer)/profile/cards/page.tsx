@@ -335,18 +335,21 @@ export default function CardsPage() {
         body: JSON.stringify({ amount: 30 }),
       });
 
-      let orderData;
+      const rawText = await response.text();
+      let orderData: any = null;
       try {
-        const text = await response.text();
-        orderData = JSON.parse(text);
+        orderData = JSON.parse(rawText);
       } catch (err) {
-        setFormError("Server error: Received an invalid response from the payment gateway.");
+        console.error('Renew-card create-order non-JSON response:', rawText);
+        setFormError(response.ok
+          ? "Server error: Received an invalid response from the payment gateway. Check console for details."
+          : `Payment gateway error (${response.status}): ${rawText.substring(0,200)}`);
         setIsSubmitting(false);
         return;
       }
 
-      if (!response.ok || !orderData.id) {
-        setFormError("Could not initiate payment order: " + (orderData.error || "Please try again."));
+      if (!response.ok || !orderData?.id) {
+        setFormError(orderData?.error ? `Could not initiate payment order: ${orderData.error}` : `Could not initiate payment order. (${response.status})`);
         setIsSubmitting(false);
         return;
       }
