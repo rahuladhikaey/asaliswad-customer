@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
 
 export default function ProductImageCarousel({
   images,
@@ -135,13 +134,10 @@ export default function ProductImageCarousel({
           {normalizedImages.map((img, idx) => (
             <div key={idx} className="flex-none w-full p-2">
               <div className="relative overflow-hidden rounded-[2.5rem] bg-white group shadow-sm border border-slate-100 flex items-center justify-center min-h-[320px] sm:min-h-[450px] md:min-h-[550px] aspect-square w-full">
-                <Image
+                <img
                   src={img || "/placeholder.jpg"}
                   alt={`${productName} - View ${idx + 1}`}
-                  fill
-                  priority={idx === 0}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  className="object-contain p-4 transition-transform duration-500 rounded-[2.5rem]"
+                  className="h-full w-full object-contain p-4 transition-transform duration-500 rounded-[2.5rem]"
                 />
               </div>
             </div>

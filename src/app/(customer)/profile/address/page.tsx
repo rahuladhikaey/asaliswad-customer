@@ -78,9 +78,23 @@ export default function AddressPage() {
           setEditPostOffice(parsed.postOffice || "");
           setEditPincode(parsed.pincode || "");
           setEditAddressDetail(parsed.addressDetail || "");
-        } else if (addrErr) {
-          console.error("No saved address found in DB for user or error:", addrErr);
-          setSavedAddress(null);
+        } else {
+          // Fallback to localStorage
+          if (typeof window !== "undefined") {
+            const saved = window.localStorage.getItem("asali-swad-user-address");
+            if (saved) {
+              try {
+                const parsed = JSON.parse(saved);
+                setSavedAddress(parsed);
+                setEditName(parsed.name || "");
+                setEditPhone(parsed.phone || "");
+                setEditVillage(parsed.village || "");
+                setEditPostOffice(parsed.postOffice || "");
+                setEditPincode(parsed.pincode || "");
+                setEditAddressDetail(parsed.addressDetail || "");
+              } catch (e) {}
+            }
+          }
         }
       } catch (e) {
         console.error("Profile data load error:", e);
