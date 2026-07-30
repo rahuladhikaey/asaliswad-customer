@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 
 interface Order {
   id: string;
+  order_number?: string;
   created_at: string;
   total_amount: number;
   payment_method: string;
@@ -15,6 +16,9 @@ interface Order {
   product_details: string; // JSON string
   address?: string;
   phone?: string;
+  tracking_number?: string;
+  courier_name?: string;
+  shipping_address?: any;
 }
 
 export default function MyOrdersPage() {
@@ -115,7 +119,7 @@ export default function MyOrdersPage() {
                     <div className="space-y-4 flex-1">
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="rounded-full bg-slate-100 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-600">
-                          Order #{String(order.id).slice(0, 8).toUpperCase()}
+                          {order.order_number || `#${String(order.id).slice(0, 8).toUpperCase()}`}
                         </span>
                         <span className={`rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest ${order.order_status === "PENDING" ? "bg-amber-50 text-amber-600" :
                             order.order_status === "SHIPPED" ? "bg-blue-50 text-blue-600" :
