@@ -270,32 +270,32 @@ CREATE POLICY "Public Read Categories" ON public.categories FOR SELECT USING (is
 CREATE POLICY "Public Read Store Settings" ON public.store_settings FOR SELECT USING (true);
 
 -- B. USER PROFILE POLICIES (STRICT OWNERSHIP)
-CREATE POLICY "Users Read Own Profile" ON public.profiles FOR SELECT USING (auth.uid() = id OR auth.role() = 'service_role');
-CREATE POLICY "Users Update Own Profile" ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users Read Own Profile" ON public.profiles FOR SELECT USING (auth.uid()::uuid = id OR auth.role() = 'service_role');
+CREATE POLICY "Users Update Own Profile" ON public.profiles FOR UPDATE USING (auth.uid()::uuid = id) WITH CHECK (auth.uid()::uuid = id);
 
 -- C. USER ADDRESSES POLICIES (STRICT OWNERSHIP)
-CREATE POLICY "Users Read Own Addresses" ON public.user_addresses FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
-CREATE POLICY "Users Insert Own Addresses" ON public.user_addresses FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users Update Own Addresses" ON public.user_addresses FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users Delete Own Addresses" ON public.user_addresses FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users Read Own Addresses" ON public.user_addresses FOR SELECT USING (auth.uid()::uuid = user_id OR auth.role() = 'service_role');
+CREATE POLICY "Users Insert Own Addresses" ON public.user_addresses FOR INSERT WITH CHECK (auth.uid()::uuid = user_id);
+CREATE POLICY "Users Update Own Addresses" ON public.user_addresses FOR UPDATE USING (auth.uid()::uuid = user_id) WITH CHECK (auth.uid()::uuid = user_id);
+CREATE POLICY "Users Delete Own Addresses" ON public.user_addresses FOR DELETE USING (auth.uid()::uuid = user_id);
 
 -- D. CART POLICIES (STRICT OWNERSHIP)
-CREATE POLICY "Users Manage Own Cart" ON public.cart_items FOR ALL USING (auth.uid() = user_id OR auth.role() = 'service_role');
+CREATE POLICY "Users Manage Own Cart" ON public.cart_items FOR ALL USING (auth.uid()::uuid = user_id OR auth.role() = 'service_role');
 
 -- E. ORDERS POLICIES
 CREATE POLICY "Anyone Can Place Orders" ON public.orders FOR INSERT WITH CHECK (true);
-CREATE POLICY "Users Read Own Orders" ON public.orders FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+CREATE POLICY "Users Read Own Orders" ON public.orders FOR SELECT USING (auth.uid()::uuid = user_id OR auth.role() = 'service_role');
 
 -- F. CARD APPLICATIONS & NOTIFICATIONS POLICIES
 CREATE POLICY "Public Submit Card Application" ON public.card_applications FOR INSERT WITH CHECK (true);
 -- Users read own applications; authenticated admin users can read ALL (needed for admin panel)
-CREATE POLICY "Users Read Own Card Applications" ON public.card_applications FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+CREATE POLICY "Users Read Own Card Applications" ON public.card_applications FOR SELECT USING (auth.uid()::uuid = user_id OR auth.role() = 'service_role');
 CREATE POLICY "Admin Read All Card Applications" ON public.card_applications FOR SELECT USING (auth.role() = 'authenticated');
 -- Admin can update card status (approve/reject/assign card number)
 CREATE POLICY "Admin Update Card Applications" ON public.card_applications FOR UPDATE USING (auth.role() = 'authenticated' OR auth.role() = 'service_role') WITH CHECK (true);
 CREATE POLICY "Admin Delete Card Applications" ON public.card_applications FOR DELETE USING (auth.role() = 'authenticated' OR auth.role() = 'service_role');
 CREATE POLICY "Public Submit Notify Request" ON public.notify_requests FOR INSERT WITH CHECK (true);
-CREATE POLICY "Users Read Own Notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id OR auth.role() = 'service_role');
+CREATE POLICY "Users Read Own Notifications" ON public.notifications FOR SELECT USING (auth.uid()::uuid = user_id OR auth.role() = 'service_role');
 -- Allow admin broadcast notifications (no user_id required)
 CREATE POLICY "Admin Insert Notifications" ON public.notifications FOR INSERT WITH CHECK (true);
 
@@ -307,3 +307,4 @@ CREATE POLICY "Service Role Full Access Orders" ON public.orders FOR ALL TO serv
 CREATE POLICY "Service Role Full Access Addresses" ON public.user_addresses FOR ALL TO service_role USING (true);
 CREATE POLICY "Service Role Full Access Cards" ON public.card_applications FOR ALL TO service_role USING (true);
 CREATE POLICY "Service Role Full Access Settings" ON public.store_settings FOR ALL TO service_role USING (true);
+

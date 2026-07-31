@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { FormEvent, useState, useEffect, Suspense } from "react";
+import { FormEvent, useState, useEffect, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useCart } from "@/context/CartContext";
@@ -55,6 +55,7 @@ function CheckoutContent() {
   const [addressDetail, setAddressDetail] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const orderPlacedRef = useRef(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "COD">(initialMethod);
@@ -296,6 +297,9 @@ function CheckoutContent() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    // Double-submit guard: prevent duplicate orders from retries or re-renders
+    if (orderPlacedRef.current) return;
+
     if (!name || !phone || !village || !postOffice || !pincode || !addressDetail) {
       setMessage("Please fill in all delivery details to proceed.");
       return;
@@ -369,6 +373,8 @@ function CheckoutContent() {
             items: cart,
             total: grandTotal,
             user_id: userId,
+            applyAsCard: cardValidated,
+            couponCode: "",
           }),
         });
 
@@ -391,6 +397,7 @@ function CheckoutContent() {
         }
 
         if (data && data.success) {
+          orderPlacedRef.current = true;
           await saveUserAddress();
           if (!isBuyNow) clearCart();
           router.push(`/order-success?order_id=${data.orderId}`);
@@ -454,11 +461,14 @@ function CheckoutContent() {
                   items: cart,
                   total: grandTotal,
                   user_id: userId,
+                  applyAsCard: cardValidated,
+                  couponCode: "",
                 }),
               });
 
               const verifyData = await verifyRes.json();
               if (verifyData.success) {
+                orderPlacedRef.current = true;
                 await saveUserAddress();
                 if (!isBuyNow) clearCart();
                 router.push(`/order-success?order_id=${verifyData.orderId}`);
