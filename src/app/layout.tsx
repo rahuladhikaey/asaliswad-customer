@@ -20,6 +20,10 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Asali Swad",
   description: "Authentic Indian Sweets, Namkeen & Dry Fruits",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
