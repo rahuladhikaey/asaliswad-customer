@@ -65,7 +65,7 @@ export function ShopByCategorySection({ initialCategories = [] }: { initialCateg
 
   const filteredCategories = categories.filter((c) => {
     if (selectedMainTab === "ALL") return true;
-    const mainCat = (c.main_category || "Grocery").toLowerCase();
+    const mainCat = (c.main_category || c.description || "Grocery").toLowerCase();
     return mainCat === selectedMainTab.toLowerCase();
   });
 

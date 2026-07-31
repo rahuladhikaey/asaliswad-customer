@@ -3,6 +3,7 @@ export type Category = {
   name: string;
   image_url?: string;
   main_category?: string;
+  description?: string;
   icon?: string;
 };
 
